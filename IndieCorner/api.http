@@ -1,0 +1,97 @@
+### Variables
+@baseUrl = http://localhost:3000
+@productId = 1
+@orderId = 1
+
+### ===== PRODUCTOS =====
+
+### GET - Obtener todos los productos
+GET {{baseUrl}}/productos
+
+### POST - Crear producto
+POST {{baseUrl}}/productos
+Content-Type: application/json
+
+{
+  "nombre": "Figura Celeste",
+  "descripcion": "Hermosa figura artesanal hecha a mano",
+  "precio": 15000,
+  "stock": 5
+}
+
+### PATCH - Actualizar producto
+PATCH {{baseUrl}}/productos/{{productId}}
+Content-Type: application/json
+
+{
+  "nombre": "Figura Celeste Actualizada",
+  "descripcion": "Figura actualizada",
+  "precio": 18000,
+  "stock": 3
+}
+
+### DELETE - Eliminar producto
+DELETE {{baseUrl}}/productos/{{productId}}
+
+### ===== PEDIDOS =====
+
+### GET - Obtener todos los pedidos
+GET {{baseUrl}}/pedidos
+
+### POST - Crear pedido
+POST {{baseUrl}}/pedidos
+Content-Type: application/json
+
+{
+  "producto_id": 1,
+  "cliente": "Ana Torres",
+  "email": "ana@email.com",
+  "cantidad": 2,
+  "fecha_retiro": "2026-05-25",
+  "estado": "pendiente"
+}
+
+### PATCH - Actualizar pedido
+PATCH {{baseUrl}}/pedidos/{{orderId}}
+Content-Type: application/json
+
+{
+  "producto_id": 1,
+  "cliente": "Ana Torres",
+  "email": "ana@email.com",
+  "cantidad": 3,
+  "fecha_retiro": "2026-05-25",
+  "estado": "confirmado"
+}
+
+### POST - Cancelar pedido
+POST {{baseUrl}}/pedidos/{{orderId}}/cancelar
+
+### DELETE - Eliminar pedido
+DELETE {{baseUrl}}/pedidos/{{orderId}}
+
+### ===== IA / RECOMENDACIONES =====
+
+### POST - Obtener recomendaciones de productos (IA)
+POST {{baseUrl}}/recomendaciones
+Content-Type: application/json
+
+{
+  "query": "figuras artesanales"
+}
+
+### POST - Obtener recomendaciones - otra búsqueda
+POST {{baseUrl}}/recomendaciones
+Content-Type: application/json
+
+{
+  "query": "decoración indie"
+}
+
+### POST - Obtener recomendaciones - búsqueda general
+POST {{baseUrl}}/recomendaciones
+Content-Type: application/json
+
+{
+  "query": "cosas bonitas"
+}
