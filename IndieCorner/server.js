@@ -2,12 +2,14 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
+import { generateProductRecommendation } from "./ai-service.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 const ORDER_STATES = ["pendiente", "confirmado", "listo para retiro", "entregado", "cancelado"];
 
 if (!supabaseUrl || !supabaseKey) {
@@ -17,7 +19,19 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-app.use(cors());
+// CORS configurado con validación de origen
+const allowedOrigins = [frontendUrl];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS no permitido"));
+    }
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 app.use(express.static("."));
 
@@ -354,6 +368,40 @@ app.delete("/pedidos/:id", async (request, response) => {
   return response.status(204).send();
 });
 
+// Nuevo endpoint para recomendaciones con IA
+app.post("/recomendaciones", async (request, response) => {
+  const { query } = request.body;
+
+  if (!query || typeof query !== "string" || query.trim().length === 0) {
+    return response.status(400).json({ error: "Proporciona un query válido." });
+  }
+
+  try {
+    // Obtener palabras clave generadas por IA
+    const keywords = await generateProductRecommendation(query);
+
+    // Buscar productos que coincidan con la búsqueda
+    const { data, error } = await supabase
+      .from("productos")
+      .select("*")
+      .ilike("nombre", `%${query}%`)
+      .limit(5);
+
+    if (error) throw error;
+
+    return response.json({
+      query,
+      keywords: keywords.trim(),
+      productos: data || [],
+    });
+  } catch (error) {
+    console.error("Error en recomendaciones:", error);
+    return response.status(500).json({ error: "No se pudieron generar recomendaciones." });
+  }
+});
+
 app.listen(port, () => {
-  console.log(`Servidor listo en http://localhost:${port}`);
+  console.log(`\n✅ Servidor listo en http://localhost:${port}`);
+  console.log(`🌐 CORS configurado para: ${frontendUrl}`);
+  console.log(`🤖 OpenAI API: ${process.env.OPENAI_API_KEY ? "✅ Configurada" : "⚠️ No configurada"}\n`);
 });
